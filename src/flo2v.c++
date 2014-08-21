@@ -5,25 +5,9 @@
 #include <libflo/sizet_printf.h++>
 #include <string.h>
 #include "version.h"
+#include "helpers.h++"
 
 using namespace libflo;
-
-const std::string flo::class_name(flo<node, operation<node> > &flof) const
-{
-    for (const auto& node: flof.nodes()) {
-        if (strstr(node->name().c_str(), ":") == NULL)
-            continue;
-
-        char buffer[LINE_MAX];
-        strncpy(buffer, node->name().c_str(), LINE_MAX);
-        strstr(buffer, ":")[0] = '\0';
-        return buffer;
-    }
-
-    fprintf(stderr, "Unable to obtain class name\n");
-    abort();
-    return "";
-}
 
 int main(int argc, const char **argv)
 {
@@ -46,11 +30,40 @@ int main(int argc, const char **argv)
 
     auto flof = flo<node, operation<node> >::parse(argv[1]);
 
-    auto mod_name = flof.class_name();
+    auto mod_name = class_name(flof);
     if (mod_name == "") {
         fprintf(stderr, "Could not find class name");
     }
     fprintf(stdout, "module %s (\n", mod_name.c_str());
+
+    bool first = true;
+
+    for (const auto& op : flof->operations()) {
+        std::string inout;
+        switch (op->op()) {
+        case opcode::IN:
+            inout = "input";
+            break;
+        case opcode::OUT:
+            inout = "output";
+            break;
+        default:
+            continue;
+        }
+        auto dest = op->d();
+
+        if (first) {
+            first = false;
+        } else {
+            fprintf(stdout, ",\n");
+        }
+
+        fprintf(stdout, "\t%s [" SIZET_FORMAT ":0] %s",
+                inout.c_str(), dest->width() - 1,
+                normalize_name(dest->name()).c_str());
+    }
+
+    fprintf(stdout, "\n);\n");
 
     for (const auto& node : flof->nodes()) {
         if (!node->is_mem())
@@ -58,7 +71,7 @@ int main(int argc, const char **argv)
 
 	fprintf(stdout, "reg [" SIZET_FORMAT ":0] %s [" SIZET_FORMAT ":0];\n",
 			node->width() - 1,
-			node->name().c_str(),
+                        normalize_name(node->name()).c_str(),
 			node->depth() - 1);
 
     }
