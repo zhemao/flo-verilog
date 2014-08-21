@@ -86,10 +86,23 @@ static void gen_write(nodeptr en, nodeptr mem, nodeptr addr, nodeptr val)
               << node_name(val) << ";\n";
 }
 
+static void gen_init(nodeptr mem, nodeptr addr, nodeptr val)
+{
+    std::cout << "\t\t" << node_name(mem) << "["
+                // don't use node_name for addr, otherwise it will
+                // try to put the wrong width on it
+              << addr->name() << "] <= " << node_name(val) << ";\n";
+}
+
 static void gen_read(nodeptr d, nodeptr mem, nodeptr addr)
 {
     std::cout << "assign " << node_name(d) << " = "
               << node_name(mem) << "[" << node_name(addr) << "];\n";
+}
+
+static void gen_rst(nodeptr d, std::string reset_name)
+{
+    std::cout << "assign " << node_name(d) << " = " << reset_name << ";\n";
 }
 
 void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
@@ -135,8 +148,10 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
         gen_mem(node);
     }
 
-    // split operations into registers and wires
+    // split operations into different categories
     std::vector<opptr> registers;
+    std::vector<opptr> writes;
+    std::vector <opptr> inits;
     std::vector<opptr> wires;
 
     for (const auto& op : flof->operations()) {
@@ -148,10 +163,9 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
             gen_decl("reg", op->d());
             registers.push_back(op);
         } else if (op->op() == opcode::WR) {
-            // write is a special case
-            // it needs to be in the clocked section
-            // but it does not actually generate a register
-            registers.push_back(op);
+            writes.push_back(op);
+        } else if (op->op() == opcode::INIT) {
+            inits.push_back(op);
         } else {
             gen_decl("wire", op->d());
             wires.push_back(op);
@@ -224,6 +238,8 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
         case opcode::RD:
             gen_read(op->d(), op->t(), op->u());
             break;
+        case opcode::RST:
+            gen_rst(op->d(), reset_name);
         default:
             break;
         }
@@ -236,12 +252,15 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
             continue;
         gen_reg_assign(op->d(), op->s());
     }
+    for (const auto& op: inits) {
+        gen_init(op->s(), op->t(), op->u());
+    }
     std::cout << "\tend else begin\n";
     for (const auto& op: registers) {
-        if (op->op() == opcode::WR)
-            gen_write(op->s(), op->t(), op->u(), op->v());
-        else
-            gen_reg_assign(op->d(), op->t());
+        gen_reg_assign(op->d(), op->t());
+    }
+    for (const auto& op: writes) {
+        gen_write(op->s(), op->t(), op->u(), op->v());
     }
     std::cout << "\tend\nend\nendmodule\n";
 }
