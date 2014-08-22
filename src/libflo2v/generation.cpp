@@ -1,8 +1,8 @@
 #include <libflo/node.h++>
 #include <libflo/operation.h++>
 
-#include "generation.h++"
-#include "helpers.h++"
+#include "generation.hpp"
+#include "helpers.hpp"
 
 #include <iostream>
 

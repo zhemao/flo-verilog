@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "version.h"
-#include "libflo2v/generation.h++"
+#include "libflo2v/generation.hpp"
 
 #include <iostream>
 
