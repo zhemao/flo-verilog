@@ -105,6 +105,26 @@ static void gen_rst(nodeptr d, std::string reset_name)
     std::cout << "assign " << node_name(d) << " = " << reset_name << ";\n";
 }
 
+static void gen_log2(nodeptr d, nodeptr s)
+{
+    // This is tricky. There's no easy builtin way of doing this in verilog
+    // (well there is, but it's not synthesizable).
+    // What we'll do is build a priority encoder using a series of muxes.
+
+    std::string name = node_name(s);
+    // 1 is the smallest number that log2 can be
+    // (Chisel considers log2(1) = 1)
+    std::string expr = "1";
+    size_t width = s->width();
+
+    for (size_t i = 2; i < width; i++) {
+        expr = "(" + name + "[" + std::to_string(i) + "]) ? "
+             + std::to_string(i) + " : (" + expr + ")";
+    }
+
+    std::cout << "assign " << node_name(d) << " = " << expr << ";\n";
+}
+
 void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
 {
     auto mod_name = class_name(flof);
@@ -223,6 +243,9 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
             break;
         case opcode::NOT:
             gen_un_op("~", op->d(), op->s());
+            break;
+        case opcode::LOG2:
+            gen_log2(op->d(), op->s());
             break;
         case opcode::MOV:
         case opcode::OUT:
