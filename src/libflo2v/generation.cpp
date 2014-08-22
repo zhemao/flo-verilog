@@ -202,6 +202,13 @@ static void gen_wire(opptr op, std::string reset_name)
     }
 }
 
+void gen_inout(std::string inout, nodeptr dest)
+{
+        std::cout << ",\n\t" << inout
+                  << " [" << (dest->width() - 1) << ":0] "
+                  << node_name(dest);
+}
+
 void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
 {
     auto mod_name = class_name(flof);
@@ -216,23 +223,37 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
               << "\tinput " << clk_name << ",\n"
               << "\tinput " << reset_name;
 
+    // split operations into different categories
+    std::vector<opptr> registers;
+    std::vector<opptr> writes;
+    std::vector <opptr> inits;
+    std::vector<opptr> wires;
+
     // print the ports (inputs and outputs)
+    // and sort the categories
     for (const auto& op : flof->operations()) {
-        std::string inout;
         switch (op->op()) {
+        // ignore memories
+        case opcode::MEM:
+            break;
         case opcode::IN:
-            inout = "input";
+            gen_inout("input", op->d());
             break;
         case opcode::OUT:
-            inout = "output";
+            gen_inout("output", op->d());
+            break;
+        case opcode::REG:
+            registers.push_back(op);
+            break;
+        case opcode::WR:
+            writes.push_back(op);
+            break;
+        case opcode::INIT:
+            inits.push_back(op);
             break;
         default:
-            continue;
+            wires.push_back(op);
         }
-        auto dest = op->d();
-
-        std::cout << ",\n\t" << inout << " [" << (dest->width() - 1) << ":0] "
-                  << node_name(dest);
     }
 
     std::cout << "\n);\n";
@@ -245,29 +266,11 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
         gen_mem(node);
     }
 
-    // split operations into different categories
-    std::vector<opptr> registers;
-    std::vector<opptr> writes;
-    std::vector <opptr> inits;
-    std::vector<opptr> wires;
+    for (const auto& op : registers)
+        gen_decl("reg", op->d());
 
-    for (const auto& op : flof->operations()) {
-        // ignore memories
-        if (op->op() == opcode::MEM)
-            continue;
-
-        if (op->op() == opcode::REG) {
-            gen_decl("reg", op->d());
-            registers.push_back(op);
-        } else if (op->op() == opcode::WR) {
-            writes.push_back(op);
-        } else if (op->op() == opcode::INIT) {
-            inits.push_back(op);
-        } else {
-            gen_decl("wire", op->d());
-            wires.push_back(op);
-        }
-    }
+    for (const auto& op : wires)
+        gen_decl("wire", op->d());
 
     // generate all the combination statements
     for (const auto& op : wires)
