@@ -114,12 +114,13 @@ static void gen_log2(nodeptr d, nodeptr s)
     std::string name = node_name(s);
     // 1 is the smallest number that log2 can be
     // (Chisel considers log2(1) = 1)
-    std::string expr = "1";
+    std::string expr = std::to_string(d->width()) + "'d1";
     size_t width = s->width();
 
     for (size_t i = 2; i < width; i++) {
         expr = "(" + name + "[" + std::to_string(i) + "]) ? "
-             + std::to_string(i) + " : (" + expr + ")";
+             + std::to_string(d->width()) + "'d" + std::to_string(i)
+             + " : (" + expr + ")";
     }
 
     std::cout << "assign " << node_name(d) << " = " << expr << ";\n";
