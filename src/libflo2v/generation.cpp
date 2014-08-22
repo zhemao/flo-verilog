@@ -209,8 +209,8 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
         fprintf(stderr, "Could not find class name");
     }
 
-    auto clk_name = mod_name + "__clk";
-    auto reset_name = mod_name + "__reset";
+    auto clk_name = mod_name + "_clk";
+    auto reset_name = mod_name + "_reset";
 
     std::cout << "module " << mod_name << " (\n"
               << "\tinput " << clk_name << ",\n"

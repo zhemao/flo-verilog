@@ -41,17 +41,20 @@ const std::string node_name(nodeptr node)
         return std::to_string(node->width()) + "'d" + node->name();
     }
 
-    // If there are any colons, replace them with double underscores
-    // This is rather arbitrary, but it produces a valid Verilog
-    // identifier that the user is unlikely to specify themselves
+    // If there are any colons or double colons, replace them with underscores
     while (true) {
         size_t index = name.find(":", last_index);
         if (index == std::string::npos) {
             norm_name += name.substr(last_index);
             break;
         }
-        norm_name += name.substr(last_index, index - last_index) + "__";
-        last_index = index + 1;
+        norm_name += name.substr(last_index, index - last_index) + "_";
+        if (index + 1 < name.length() && name[index + 1] == ':') {
+            // if it's a double colon, skip both of them
+            last_index = index + 2;
+        } else {
+            last_index = index + 1;
+        }
     }
     return norm_name;
 }
