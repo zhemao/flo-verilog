@@ -126,6 +126,82 @@ static void gen_log2(nodeptr d, nodeptr s)
     std::cout << "assign " << node_name(d) << " = " << expr << ";\n";
 }
 
+static void gen_wire(opptr op, std::string reset_name)
+{
+    switch (op->op()) {
+    case opcode::ADD:
+        gen_bin_op("+", op->d(), op->s(), op->t());
+        break;
+    case opcode::SUB:
+        gen_bin_op("-", op->d(), op->s(), op->t());
+        break;
+    case opcode::MUL:
+        gen_bin_op("*", op->d(), op->s(), op->t());
+        break;
+    case opcode::DIV:
+        gen_bin_op("/", op->d(), op->s(), op->t());
+        break;
+    case opcode::AND:
+        gen_bin_op("&", op->d(), op->s(), op->t());
+        break;
+    case opcode::OR:
+        gen_bin_op("|", op->d(), op->s(), op->t());
+        break;
+    case opcode::XOR:
+        gen_bin_op("^", op->d(), op->s(), op->t());
+        break;
+    case opcode::LSH:
+        gen_lshift(op->d(), op->s(), op->t());
+        break;
+    case opcode::RSH:
+    case opcode::RSHD:
+        gen_rshift(op->d(), op->s(), op->t());
+        break;
+    case opcode::ARSH:
+        gen_bin_op(">>>", op->d(), op->s(), op->t());
+        break;
+    case opcode::EQ:
+        gen_bin_op("==", op->d(), op->s(), op->t());
+        break;
+    case opcode::GTE:
+        gen_bin_op(">=", op->d(), op->s(), op->t());
+        break;
+    case opcode::LT:
+        gen_bin_op("<", op->d(), op->s(), op->t());
+        break;
+    case opcode::NEQ:
+        gen_bin_op("!=", op->d(), op->s(), op->t());
+        break;
+    case opcode::NEG:
+        gen_un_op("-", op->d(), op->s());
+        break;
+    case opcode::NOT:
+        gen_un_op("~", op->d(), op->s());
+        break;
+    case opcode::LOG2:
+        gen_log2(op->d(), op->s());
+        break;
+    case opcode::MOV:
+    case opcode::OUT:
+        gen_un_op("", op->d(), op->s());
+        break;
+    case opcode::CAT:
+    case opcode::CATD:
+        gen_cat(op->d(), op->s(), op->t());
+        break;
+    case opcode::MUX:
+        gen_mux(op->d(), op->s(), op->t(), op->u());
+        break;
+    case opcode::RD:
+        gen_read(op->d(), op->t(), op->u());
+        break;
+    case opcode::RST:
+        gen_rst(op->d(), reset_name);
+    default:
+        break;
+    }
+}
+
 void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
 {
     auto mod_name = class_name(flof);
@@ -194,97 +270,28 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
     }
 
     // generate all the combination statements
-    for (const auto& op : wires) {
-        switch (op->op()) {
-        case opcode::ADD:
-            gen_bin_op("+", op->d(), op->s(), op->t());
-            break;
-        case opcode::SUB:
-            gen_bin_op("-", op->d(), op->s(), op->t());
-            break;
-        case opcode::MUL:
-            gen_bin_op("*", op->d(), op->s(), op->t());
-            break;
-        case opcode::DIV:
-            gen_bin_op("/", op->d(), op->s(), op->t());
-            break;
-        case opcode::AND:
-            gen_bin_op("&", op->d(), op->s(), op->t());
-            break;
-        case opcode::OR:
-            gen_bin_op("|", op->d(), op->s(), op->t());
-            break;
-        case opcode::XOR:
-            gen_bin_op("^", op->d(), op->s(), op->t());
-            break;
-        case opcode::LSH:
-            gen_lshift(op->d(), op->s(), op->t());
-            break;
-        case opcode::RSH:
-        case opcode::RSHD:
-            gen_rshift(op->d(), op->s(), op->t());
-            break;
-        case opcode::ARSH:
-            gen_bin_op(">>>", op->d(), op->s(), op->t());
-            break;
-        case opcode::EQ:
-            gen_bin_op("==", op->d(), op->s(), op->t());
-            break;
-        case opcode::GTE:
-            gen_bin_op(">=", op->d(), op->s(), op->t());
-            break;
-        case opcode::LT:
-            gen_bin_op("<", op->d(), op->s(), op->t());
-            break;
-        case opcode::NEQ:
-            gen_bin_op("!=", op->d(), op->s(), op->t());
-            break;
-        case opcode::NEG:
-            gen_un_op("-", op->d(), op->s());
-            break;
-        case opcode::NOT:
-            gen_un_op("~", op->d(), op->s());
-            break;
-        case opcode::LOG2:
-            gen_log2(op->d(), op->s());
-            break;
-        case opcode::MOV:
-        case opcode::OUT:
-            gen_un_op("", op->d(), op->s());
-            break;
-        case opcode::CAT:
-        case opcode::CATD:
-            gen_cat(op->d(), op->s(), op->t());
-            break;
-        case opcode::MUX:
-            gen_mux(op->d(), op->s(), op->t(), op->u());
-            break;
-        case opcode::RD:
-            gen_read(op->d(), op->t(), op->u());
-            break;
-        case opcode::RST:
-            gen_rst(op->d(), reset_name);
-        default:
-            break;
-        }
-    }
+    for (const auto& op : wires)
+        gen_wire(op, reset_name);
 
     std::cout << "always @(posedge " << clk_name << ") begin\n"
               << "\tif (" << reset_name << ") begin\n";
+
     for (const auto& op: registers) {
         if (op->op() != opcode::REG)
             continue;
         gen_reg_assign(op->d(), op->s());
     }
-    for (const auto& op: inits) {
+
+    for (const auto& op: inits)
         gen_init(op->s(), op->t(), op->u());
-    }
+
     std::cout << "\tend else begin\n";
-    for (const auto& op: registers) {
+
+    for (const auto& op: registers)
         gen_reg_assign(op->d(), op->t());
-    }
-    for (const auto& op: writes) {
+
+    for (const auto& op: writes)
         gen_write(op->s(), op->t(), op->u(), op->v());
-    }
+
     std::cout << "\tend\nend\nendmodule\n";
 }
