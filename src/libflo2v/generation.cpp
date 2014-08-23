@@ -39,17 +39,33 @@ static void gen_lshift(nodeptr d, nodeptr s, nodeptr t)
     gen_bin_op("<<", d, s, t);
 }
 
+static void gen_selection(nodeptr d, nodeptr s, nodeptr t)
+{
+    size_t width = d->width();
+    size_t start = std::stoi(t->name());
+    size_t highest = start + width;
+
+    if (highest > s->width()) {
+        size_t extend = highest - s->width();
+        std::cout << "assign " << node_name(d) << " = "
+            << "{" << extend << "'d0, "
+            << node_name(s) << "[" << (s->width() - 1) << ":"
+            << start << "]};\n";
+        return;
+    }
+
+    std::cout << "assign " << node_name(d) << " = "
+              << node_name(s) << "["
+              << (highest - 1) << ":" << start << "];\n";
+}
+
 static void gen_rshift(nodeptr d, nodeptr s, nodeptr t)
 {
     // Flo uses right shifts by constants
     // to select bits out of signals.
     // This requires special handling in Verilog
     if (t->is_const()) {
-        size_t width = d->width();
-        size_t start = std::stoi(t->name());
-        std::cout << "assign " << node_name(d) << " = "
-                  << node_name(s) << "["
-                  << (start + width - 1) << ":" << start << "];\n";
+        gen_selection(d, s, t);
         return;
     }
 
