@@ -2,5 +2,6 @@
 /bin
 /lib
 /Makefile
+/Configfile.local
 *.flo
 *.v
