@@ -29,11 +29,17 @@ static void gen_mem(nodeptr node)
 
 static void gen_lshift(nodeptr d, nodeptr s, nodeptr t)
 {
-    if (!s->is_const() && s->width() < d->width()) {
+    if (s->width() < d->width()) {
         size_t zero_width = d->width() - s->width();
         std::cout << "assign " << node_name(d) << " = {"
                   << zero_width << "'d0, " << node_name(s)
                   << "} << " << node_name(t) << ";\n";
+        return;
+    }
+    if (s->width() > d->width()) {
+        std::cout << "assign " << node_name(d) << " = "
+                  << node_name(s) << "[" << (d->width() - 1)
+                  << ":0] << " << node_name(t) << ";\n";
         return;
     }
     gen_bin_op("<<", d, s, t);
@@ -66,6 +72,20 @@ static void gen_rshift(nodeptr d, nodeptr s, nodeptr t)
     // This requires special handling in Verilog
     if (t->is_const()) {
         gen_selection(d, s, t);
+        return;
+    }
+
+    if (s->width() < d->width()) {
+        size_t zero_width = d->width() - s->width();
+        std::cout << "assign " << node_name(d) << " = {"
+                  << zero_width << "'d0, " << node_name(s)
+                  << "} >> " << node_name(t) << ";\n";
+        return;
+    }
+    if (s->width() > d->width()) {
+        std::cout << "assign " << node_name(d) << " = "
+                  << node_name(s) << "[" << (d->width() - 1)
+                  << ":0] >> " << node_name(t) << ";\n";
         return;
     }
 
