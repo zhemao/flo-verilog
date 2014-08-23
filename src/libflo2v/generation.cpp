@@ -1,6 +1,3 @@
-#include <libflo/node.h++>
-#include <libflo/operation.h++>
-
 #include "generation.hpp"
 #include "helpers.hpp"
 
@@ -333,4 +330,75 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
         gen_write(op->s(), op->t(), op->u(), op->v());
 
     std::cout << "\tend\nend\nendmodule\n";
+}
+
+void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
+              std::shared_ptr<libstep::step> stepf, size_t clock_period)
+{
+    std::string mod_name = class_name(flof);
+    std::string clk_name = mod_name + "_clk";
+    std::string reset_name = mod_name + "_reset";
+
+    std::cout << "module " << mod_name << "_tb();\n";
+
+    std::vector<std::shared_ptr<node> > inputs;
+    std::vector<std::shared_ptr<node> > outputs;
+    std::vector<std::shared_ptr<node> > ports;
+
+    for (const auto &op : flof->operations()) {
+        if (op->op() == opcode::IN) {
+            inputs.push_back(op->d());
+            ports.push_back(op->d());
+        } else if (op->op() == opcode::OUT) {
+            outputs.push_back(op->d());
+            ports.push_back(op->d());
+        }
+    }
+
+    std::cout << "reg clk;\nreg reset;\n"
+              << "always #" << (clock_period >> 1)
+              << " clk = !clk;\n";
+
+    for (const auto &node : inputs)
+        std::cout << "reg [" << (node->width() - 1) << ":0] "
+                  << node_name(node) << ";\n";
+
+    for (const auto &node : outputs)
+        std::cout << "wire [" << (node->width() - 1) << ":0] "
+                  << node_name(node) << ";\n";
+
+    std::cout << mod_name << " test (\n"
+              << "\t." << clk_name << " (clk),\n"
+              << "\t." << reset_name << " (reset)";
+
+    for (const auto &node : ports) {
+        auto name = node_name(node);
+        std::cout << ",\n\t" << "." << name << " ("
+                  << name << ")";
+    }
+
+    std::cout << "\n);\n";
+
+    std::cout << "initial begin\n\t";
+
+    for (const auto &act : stepf->actions()) {
+        switch (act->at()) {
+        case libstep::action_type::STEP:
+            std::cout << "#" << clock_period * act->value() << " ";
+            break;
+        case libstep::action_type::WIRE_POKE:
+            std::cout << act->signal() << " = " << act->value() << ";\n\t";
+            break;
+        case libstep::action_type::RESET:
+            std::cout << "reset = 1;\n\t#" << clock_period * act->value()
+                      << " reset = 0;\n\t";
+            break;
+        case libstep::action_type::QUIT:
+            std::cout << "$finish;\n";
+        default:
+            break;
+        }
+    }
+
+    std::cout << "end\nendmodule\n";
 }

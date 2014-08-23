@@ -22,3 +22,8 @@ BINARIES    += flo2v
 COMPILEOPTS += `ppkg-config flo --cflags`
 LINKOPTS    += `ppkg-config flo --libs`
 SOURCES     += flo2v.cpp
+
+BINARIES    += step2tb
+COMPILEOPTS += `ppkg-config flo step --cflags`
+LINKOPTS    += `ppkg-config flo step --libs`
+SOURCES     += step2tb.cpp
