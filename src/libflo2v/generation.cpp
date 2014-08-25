@@ -362,6 +362,7 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
     }
 
     std::cout << "reg clk;\nreg reset;\n"
+              << "initial clk = 1'b1;\n"
               << "always #" << (clock_period >> 1)
               << " clk = !clk;\n";
 
