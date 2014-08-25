@@ -386,7 +386,9 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
 
     std::cout << "\n);\n";
 
-    std::cout << "initial begin\n\t";
+    std::cout << "initial begin\n"
+              << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n"
+              << "\t$dumpvars(0, " << mod_name << "_tb);\n\t";
 
     for (const auto &act : stepf->actions()) {
         switch (act->at()) {
