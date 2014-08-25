@@ -259,8 +259,9 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
     // split operations into different categories
     std::vector<opptr> registers;
     std::vector<opptr> writes;
-    std::vector <opptr> inits;
+    std::vector<opptr> inits;
     std::vector<opptr> wires;
+    std::vector<opptr> outputs;
 
     // print the ports (inputs and outputs)
     // and sort the categories
@@ -274,6 +275,7 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
             break;
         case opcode::OUT:
             gen_inout("output", op->d());
+            outputs.push_back(op);
             break;
         case opcode::REG:
             registers.push_back(op);
@@ -307,6 +309,10 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
 
     // generate all the combination statements
     for (const auto& op : wires)
+        gen_wire(op, reset_name);
+
+    // generate the output assignments
+    for (const auto& op : outputs)
         gen_wire(op, reset_name);
 
     std::cout << "always @(posedge " << clk_name << ") begin\n"
