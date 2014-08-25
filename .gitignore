@@ -5,3 +5,9 @@
 /Configfile.local
 *.flo
 *.v
+*.vcd
+*.step
+/torture
+/csrc
+*.daidir
+/ucli.key
