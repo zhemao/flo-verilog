@@ -14,12 +14,12 @@ using namespace libflo;
 int main(int argc, char *argv[])
 {
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <flo> <step>\n";
+        std::cerr << "Usage: " << argv[0] << " <step> <flo>\n";
         return -1;
     }
 
-    auto flof = flo<node, operation<node> >::parse(argv[1]);
-    auto stepf = libstep::step::parse(argv[2]);
+    auto stepf = libstep::step::parse(argv[1]);
+    auto flof = flo<node, operation<node> >::parse(argv[2]);
 
     gen_step(flof, stepf, CLOCK_PERIOD);
 
