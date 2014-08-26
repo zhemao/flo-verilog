@@ -388,9 +388,7 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
 
     std::cout << "\n);\n";
 
-    std::cout << "initial begin\n"
-              << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n"
-              << "\t$dumpvars(0, " << mod_name << "_tb);\n\t";
+    std::cout << "initial begin\n\t";
 
     for (const auto &act : stepf->actions()) {
         switch (act->at()) {
@@ -402,7 +400,9 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
             break;
         case libstep::action_type::RESET:
             std::cout << "reset = 1;\n\t#" << clock_period * act->value()
-                      << " reset = 0;\n\t";
+                      << " reset = 0;\n"
+                      << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n"
+                      << "\t$dumpvars(0, " << mod_name << "_tb);\n\t";
             break;
         case libstep::action_type::QUIT:
             std::cout << "$finish;\n";
