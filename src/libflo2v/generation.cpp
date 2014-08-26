@@ -404,6 +404,7 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
             break;
         case libstep::action_type::QUIT:
             std::cout << "$finish;\n";
+            break;
         default:
             break;
         }
