@@ -338,6 +338,15 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
     std::cout << "\tend\nend\nendmodule\n";
 }
 
+/* Generate $dumpvars expression for inputs and outputs */
+static void gen_vardump(std::vector<nodeptr> &ports)
+{
+    std::cout << "\t$dumpvars(1";
+    for (const auto &node : ports)
+        std::cout << ", " << node_name(node);
+    std::cout << ");\n\t";
+}
+
 void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
               std::shared_ptr<libstep::step> stepf, size_t clock_period)
 {
@@ -348,9 +357,9 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
     std::cout << "`timescale 100fs/100fs\n"
               << "module " << mod_name << "_tb();\n";
 
-    std::vector<std::shared_ptr<node> > inputs;
-    std::vector<std::shared_ptr<node> > outputs;
-    std::vector<std::shared_ptr<node> > ports;
+    std::vector<nodeptr> inputs;
+    std::vector<nodeptr> outputs;
+    std::vector<nodeptr> ports;
 
     for (const auto &op : flof->operations()) {
         if (op->op() == opcode::IN) {
@@ -401,8 +410,8 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
         case libstep::action_type::RESET:
             std::cout << "reset = 1;\n\t#" << clock_period * act->value()
                       << " reset = 0;\n"
-                      << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n"
-                      << "\t$dumpvars(0, " << mod_name << "_tb);\n\t";
+                      << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n";
+            gen_vardump(ports);
             break;
         case libstep::action_type::QUIT:
             std::cout << "$finish;\n";
