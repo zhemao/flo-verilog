@@ -1,0 +1,11 @@
+prefix=@@pconfigure_prefix@@
+exec_prefix=@@pconfigure_prefix@@
+libdir=${prefix}/@@pconfigure_libdir@@
+includedir=${prefix}/@@pconfigure_hdrdir@@
+
+Name: step
+Description: A Step file format parser
+Version: @@pconfigure_version@@
+Libs: -Wl,-rpath,${libdir} -L${libdir} -lstep
+Cflags: -I${includedir}
+URL: http://github.com/zhemao/libstep
