@@ -33,35 +33,34 @@ namespace libstep {
 
     static action_ptr parse_line(std::string &line)
     {
-            auto parts = split(line, ' ');
-            if (parts[0] == "step") {
-                if (parts.size() != 2)
-                    throw malformed_exception();
-                return std::shared_ptr<action>(
-                        new action(action_type::STEP, "", "",
-                                   std::stoi(parts[1])));
-            }
-            if (parts[0] == "wire_poke") {
-                if (parts.size() != 3)
-                    throw malformed_exception();
-                std::string module, signal;
-                split_signal_name(parts[1], module, signal);
-                return std::shared_ptr<action>(
-                        new action(action_type::WIRE_POKE,
-                            module, signal,
-                            std::stoi(parts[2])));
-            }
-            if (parts[0] == "reset") {
-                if (parts.size() != 2)
-                    throw malformed_exception();
-                return std::shared_ptr<action>(
-                        new action(action_type::RESET, "", "",
-                            std::stoi(parts[1])));
-            }
-            if (parts[0] == "quit")
-                return std::shared_ptr<action>(
-                        new action(action_type::QUIT, "", "", 0));
-            throw malformed_exception();
+        auto parts = split(line, ' ');
+        if (parts[0] == "step") {
+            if (parts.size() != 2)
+                throw malformed_exception();
+            return std::shared_ptr<action>(
+                    new action(action_type::STEP, "", "", "",
+                               std::stoi(parts[1])));
+        }
+        if (parts[0] == "wire_poke") {
+            if (parts.size() != 3)
+                throw malformed_exception();
+            std::string module, signal;
+            split_signal_name(parts[1], module, signal);
+            return std::shared_ptr<action>(
+                    new action(action_type::WIRE_POKE,
+                        module, signal, parts[2], 0));
+        }
+        if (parts[0] == "reset") {
+            if (parts.size() != 2)
+                throw malformed_exception();
+            return std::shared_ptr<action>(
+                    new action(action_type::RESET, "", "", "",
+                        std::stoi(parts[1])));
+        }
+        if (parts[0] == "quit")
+            return std::shared_ptr<action>(
+                    new action(action_type::QUIT, "", "", "", 0));
+        throw malformed_exception();
     }
 
     const std::shared_ptr<step> step::parse(

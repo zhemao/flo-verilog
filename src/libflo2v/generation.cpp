@@ -361,10 +361,13 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
     std::vector<nodeptr> outputs;
     std::vector<nodeptr> ports;
 
+    std::map<std::string, unsigned int> sizemap;
+
     for (const auto &op : flof->operations()) {
         if (op->op() == opcode::IN) {
             inputs.push_back(op->d());
             ports.push_back(op->d());
+            sizemap[node_name(op->d())] = op->d()->width();
         } else if (op->op() == opcode::OUT) {
             outputs.push_back(op->d());
             ports.push_back(op->d());
@@ -400,15 +403,19 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
     std::cout << "initial begin\n\t";
 
     for (const auto &act : stepf->actions()) {
+        unsigned int width;
+
         switch (act->at()) {
         case libstep::action_type::STEP:
-            std::cout << "#" << clock_period * act->value() << " ";
+            std::cout << "#" << clock_period * act->cycles() << " ";
             break;
         case libstep::action_type::WIRE_POKE:
-            std::cout << act->signal() << " = " << act->value() << ";\n\t";
+            width = sizemap[act->signal()];
+            std::cout << act->signal() << " = "
+                      << width << "'d" << act->value() << ";\n\t";
             break;
         case libstep::action_type::RESET:
-            std::cout << "reset = 1;\n\t#" << clock_period * act->value()
+            std::cout << "reset = 1;\n\t#" << clock_period * act->cycles()
                       << " reset = 0;\n"
                       << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n";
             gen_vardump(ports);
