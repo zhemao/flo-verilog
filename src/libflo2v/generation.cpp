@@ -354,7 +354,7 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
     std::string clk_name = mod_name + "_clk";
     std::string reset_name = mod_name + "_reset";
 
-    std::cout << "`timescale 100fs/100fs\n"
+    std::cout << "`timescale 1ps/1ps\n"
               << "module " << mod_name << "_tb();\n";
 
     std::vector<nodeptr> inputs;

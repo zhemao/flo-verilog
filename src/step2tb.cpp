@@ -8,7 +8,7 @@
 using namespace libflo;
 
 #ifndef CLOCK_PERIOD
-#define CLOCK_PERIOD 10
+#define CLOCK_PERIOD 2
 #endif
 
 int main(int argc, char *argv[])
