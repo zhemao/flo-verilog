@@ -345,7 +345,8 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
     std::string clk_name = mod_name + "_clk";
     std::string reset_name = mod_name + "_reset";
 
-    std::cout << "module " << mod_name << "_tb();\n";
+    std::cout << "`timescale 100fs/100fs\n"
+              << "module " << mod_name << "_tb();\n";
 
     std::vector<std::shared_ptr<node> > inputs;
     std::vector<std::shared_ptr<node> > outputs;
@@ -361,10 +362,11 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
         }
     }
 
+    const size_t clock_delay = clock_period >> 1;
+
     std::cout << "reg clk;\nreg reset;\n"
               << "initial clk = 1'b1;\n"
-              << "always #" << (clock_period >> 1)
-              << " clk = !clk;\n";
+              << "always #" << clock_delay << " clk = !clk;\n";
 
     for (const auto &node : inputs)
         std::cout << "reg [" << (node->width() - 1) << ":0] "
