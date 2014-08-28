@@ -79,12 +79,6 @@ static void gen_rshift(nodeptr d, nodeptr s, nodeptr t)
                   << "} >> " << node_name(t) << ";\n";
         return;
     }
-    if (s->width() > d->width()) {
-        std::cout << "assign " << node_name(d) << " = "
-                  << node_name(s) << "[" << (d->width() - 1)
-                  << ":0] >> " << node_name(t) << ";\n";
-        return;
-    }
 
     gen_bin_op(">>", d, s, t);
 }
