@@ -97,7 +97,7 @@ static void gen_decl(std::string typ, nodeptr d)
 
 static void gen_reg_assign(nodeptr reg, nodeptr val)
 {
-    std::cout << "\t\t" << node_name(reg) << " <= " << node_name(val) << ";\n";
+    std::cout << "\t" << node_name(reg) << " <= " << node_name(val) << ";\n";
 }
 
 static void gen_mux(nodeptr d, nodeptr s, nodeptr t, nodeptr u)
@@ -108,7 +108,7 @@ static void gen_mux(nodeptr d, nodeptr s, nodeptr t, nodeptr u)
 
 static void gen_write(nodeptr en, nodeptr mem, nodeptr addr, nodeptr val)
 {
-    std::cout << "\t\tif (" << node_name(en) << ") "
+    std::cout << "\tif (" << node_name(en) << ") "
               << node_name(mem) << "[" << node_name(addr) << "] <= "
               << node_name(val) << ";\n";
 }
@@ -309,19 +309,12 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
     for (const auto& op : outputs)
         gen_wire(op, reset_name);
 
-    std::cout << "always @(posedge " << clk_name << ") begin\n"
-              << "\tif (" << reset_name << ") begin\n";
-
-    for (const auto& op: registers) {
-        if (op->op() != opcode::REG)
-            continue;
-        gen_reg_assign(op->d(), op->s());
-    }
-
+    std::cout << "initial begin\n";
     for (const auto& op: inits)
         gen_init(op->s(), op->t(), op->u());
+    std::cout << "end\n";
 
-    std::cout << "\tend else begin\n";
+    std::cout << "always @(posedge " << clk_name << ") begin\n";
 
     for (const auto& op: registers)
         gen_reg_assign(op->d(), op->t());
@@ -329,15 +322,15 @@ void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof)
     for (const auto& op: writes)
         gen_write(op->s(), op->t(), op->u(), op->v());
 
-    std::cout << "\tend\nend\nendmodule\n";
+    std::cout << "end\nendmodule\n";
 }
 
 /* Generate $dumpvars expression for inputs and outputs */
-static void gen_vardump(std::vector<nodeptr> &ports)
+static void gen_vardump(std::string mod_name, std::vector<nodeptr> &ports)
 {
     std::cout << "\t$dumpvars(1";
     for (const auto &node : ports)
-        std::cout << ", " << node_name(node);
+        std::cout << ", " << mod_name << "." << node_name(node);
     std::cout << ");\n\t";
 }
 
@@ -382,7 +375,7 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
         std::cout << "wire [" << (node->width() - 1) << ":0] "
                   << node_name(node) << ";\n";
 
-    std::cout << mod_name << " test (\n"
+    std::cout << mod_name << " " << mod_name << " (\n"
               << "\t." << clk_name << " (clk),\n"
               << "\t." << reset_name << " (reset)";
 
@@ -412,7 +405,7 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
             std::cout << "reset = 1;\n\t#" << clock_period * act->cycles()
                       << " reset = 0;\n"
                       << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n";
-            gen_vardump(ports);
+            gen_vardump(mod_name, ports);
             break;
         case libstep::action_type::QUIT:
             std::cout << "$finish;\n";
