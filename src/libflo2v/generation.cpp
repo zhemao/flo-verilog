@@ -398,12 +398,12 @@ void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
             break;
         case libstep::action_type::WIRE_POKE:
             width = sizemap[act->signal()];
-            std::cout << act->signal() << " = "
+            std::cout << act->signal() << " <= "
                       << width << "'d" << act->value() << ";\n\t";
             break;
         case libstep::action_type::RESET:
-            std::cout << "reset = 1;\n\t#" << clock_period * act->cycles()
-                      << " reset = 0;\n"
+            std::cout << "reset <= 1;\n\t#" << clock_period * act->cycles()
+                      << " reset <= 0;\n"
                       << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n";
             gen_vardump(mod_name, ports);
             break;
