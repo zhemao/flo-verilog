@@ -139,12 +139,12 @@ static void gen_log2(nodeptr d, nodeptr s)
     // What we'll do is build a priority encoder using a series of muxes.
 
     std::string name = node_name(s);
-    // 1 is the smallest number that log2 can be
-    // (Chisel considers log2(1) = 1)
-    std::string expr = std::to_string(d->width()) + "'d1";
+    // The "default" value is 0, now that CHISEL has been corrected
+    // to consider log2(1) == 0
+    std::string expr = std::to_string(d->width()) + "'d0";
     size_t width = s->width();
 
-    for (size_t i = 2; i < width; i++) {
+    for (size_t i = 1; i < width; i++) {
         expr = "(" + name + "[" + std::to_string(i) + "]) ? "
              + std::to_string(d->width()) + "'d" + std::to_string(i)
              + " : (" + expr + ")";
