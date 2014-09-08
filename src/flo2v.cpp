@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     auto dotpos = outpath.rfind(".flo");
 
     if (dotpos == std::string::npos) {
-        std::cerr << "Input is not a flo file";
+        std::cerr << "Input is not a flo file\n";
         exit(EXIT_FAILURE);
     }
 
