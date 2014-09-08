@@ -9,6 +9,8 @@
 #include "libflo2v/generation.hpp"
 
 #include <iostream>
+#include <string>
+#include <fstream>
 
 using namespace libflo;
 
@@ -27,7 +29,7 @@ int main(int argc, char *argv[])
     int opt;
     bool version = false;
 
-    while ((opt = getopt_long(argc, argv, "vd", long_options, NULL)) > 0) {
+    while ((opt = getopt_long(argc, argv, "", long_options, NULL)) > 0) {
         switch (opt) {
         case 'v':
             version = true;
@@ -52,7 +54,18 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    auto flof = flo<node, operation<node> >::parse(argv[optind]);
+    std::string outpath(argv[optind]);
+    auto dotpos = outpath.rfind(".flo");
 
-    gen_flo(flof);
+    if (dotpos == std::string::npos) {
+        std::cerr << "Input is not a flo file";
+        exit(EXIT_FAILURE);
+    }
+
+    outpath.replace(dotpos, 4, ".v");
+
+    auto flof = flo<node, operation<node> >::parse(argv[optind]);
+    std::ofstream vstream(outpath.c_str());
+
+    flo2v::gen_flo(flof, vstream);
 }

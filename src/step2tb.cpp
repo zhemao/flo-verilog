@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     auto stepf = libstep::step::parse(argv[1]);
     auto flof = flo<node, operation<node> >::parse(argv[2]);
 
-    gen_step(flof, stepf, CLOCK_PERIOD);
+    flo2v::gen_step(flof, stepf, CLOCK_PERIOD);
 
     return 0;
 }
