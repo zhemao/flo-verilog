@@ -22,6 +22,8 @@ BINARIES    += flo2v
 COMPILEOPTS += `ppkg-config flo --cflags`
 LINKOPTS    += `ppkg-config flo --libs`
 SOURCES     += flo2v.cpp
+
+TESTSRC     += patterns-test.bash
 TESTSRC     += torture-test.bash
 
 BINARIES    += step2tb
