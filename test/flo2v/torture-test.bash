@@ -14,7 +14,7 @@ for i in {0..20}; do
     $STEP2TB Torture.step Torture.flo > Torture_tb.v
     vcs -full64 -q -o torture -Mupdate Torture_tb.v Torture.v > /dev/null
     ./torture > /dev/null
-    vcddiff --raise-b-signals=1 Torture.vcd Torture-test.vcd
+    vcddiff --raise-b-signals=1 --b-tspc=2 Torture.vcd Torture-test.vcd
 done
 
 echo "Test passed"
