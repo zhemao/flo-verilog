@@ -13,7 +13,8 @@ namespace flo2v {
     void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof,
                  std::ostream &out);
     void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
-                  std::shared_ptr<libstep::step> stepf, size_t clock_period);
+                  std::shared_ptr<libstep::step> stepf, size_t clock_period,
+                  std::ostream &out);
 }
 
 #endif

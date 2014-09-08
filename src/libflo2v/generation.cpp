@@ -336,22 +336,24 @@ namespace flo2v {
     }
 
     /* Generate $dumpvars expression for inputs and outputs */
-    static void gen_vardump(std::string mod_name, std::vector<nodeptr> &ports)
+    static void gen_vardump(std::ostream &out,
+            std::string mod_name, std::vector<nodeptr> &ports)
     {
-        std::cout << "\t$dumpvars(1";
+        out << "\t$dumpvars(1";
         for (const auto &node : ports)
-            std::cout << ", " << mod_name << "." << node_name(node);
-        std::cout << ");\n\t";
+            out << ", " << mod_name << "." << node_name(node);
+        out << ");\n\t";
     }
 
     void gen_step(std::shared_ptr<flo<node, operation<node> > > flof,
-                  std::shared_ptr<libstep::step> stepf, size_t clock_period)
+                  std::shared_ptr<libstep::step> stepf, size_t clock_period,
+                  std::ostream &out)
     {
         std::string mod_name = class_name(flof);
         std::string clk_name = mod_name + "_clk";
         std::string reset_name = mod_name + "_reset";
 
-        std::cout << "`timescale 1ps/1ps\n"
+        out << "`timescale 1ps/1ps\n"
                   << "module " << mod_name << "_tb();\n";
 
         std::vector<nodeptr> inputs;
@@ -373,58 +375,58 @@ namespace flo2v {
 
         const size_t clock_delay = clock_period >> 1;
 
-        std::cout << "reg clk;\nreg reset;\n"
+        out << "reg clk;\nreg reset;\n"
                   << "initial clk = 1'b1;\n"
                   << "always #" << clock_delay << " clk = !clk;\n";
 
         for (const auto &node : inputs)
-            std::cout << "reg [" << (node->width() - 1) << ":0] "
+            out << "reg [" << (node->width() - 1) << ":0] "
                       << node_name(node) << ";\n";
 
         for (const auto &node : outputs)
-            std::cout << "wire [" << (node->width() - 1) << ":0] "
+            out << "wire [" << (node->width() - 1) << ":0] "
                       << node_name(node) << ";\n";
 
-        std::cout << mod_name << " " << mod_name << " (\n"
+        out << mod_name << " " << mod_name << " (\n"
                   << "\t." << clk_name << " (clk),\n"
                   << "\t." << reset_name << " (reset)";
 
         for (const auto &node : ports) {
             auto name = node_name(node);
-            std::cout << ",\n\t" << "." << name << " ("
+            out << ",\n\t" << "." << name << " ("
                       << name << ")";
         }
 
-        std::cout << "\n);\n";
+        out << "\n);\n";
 
-        std::cout << "initial begin\n\t";
+        out << "initial begin\n\t";
 
         for (const auto &act : stepf->actions()) {
             unsigned int width;
 
             switch (act->at()) {
             case libstep::action_type::STEP:
-                std::cout << "#" << clock_period * act->cycles() << " ";
+                out << "#" << clock_period * act->cycles() << " ";
                 break;
             case libstep::action_type::WIRE_POKE:
                 width = sizemap[act->signal()];
-                std::cout << act->signal() << " <= "
+                out << act->signal() << " <= "
                           << width << "'d" << act->value() << ";\n\t";
                 break;
             case libstep::action_type::RESET:
-                std::cout << "reset <= 1;\n\t#" << clock_period * act->cycles()
+                out << "reset <= 1;\n\t#" << clock_period * act->cycles()
                           << " reset <= 0;\n"
                           << "\t$dumpfile(\"" << mod_name << "-test.vcd\");\n";
-                gen_vardump(mod_name, ports);
+                gen_vardump(out, mod_name, ports);
                 break;
             case libstep::action_type::QUIT:
-                std::cout << "$finish;\n";
+                out << "$finish;\n";
                 break;
             default:
                 break;
             }
         }
 
-        std::cout << "end\nendmodule\n";
+        out << "end\nendmodule\n";
     }
 }
