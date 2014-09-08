@@ -11,21 +11,21 @@ namespace flo2v {
             std::string op, nodeptr d, nodeptr s, nodeptr t)
     {
         out << "assign " << node_name(d) << " = "
-                  << node_name(s) << " " << op << " " << node_name(t) << ";\n";
+            << node_name(s) << " " << op << " " << node_name(t) << ";\n";
     }
 
     static void gen_un_op(std::ostream &out,
             std::string op, nodeptr d, nodeptr s)
     {
         out << "assign " << node_name(d) << " = " << op
-                  << node_name(s) << ";\n";
+            << node_name(s) << ";\n";
     }
 
     static void gen_mem(std::ostream &out, nodeptr node)
     {
         out << "reg [" << (node->width() - 1) << ":0] "
-                  << node_name(node) << " ["
-                  << (node->depth() - 1) << ":0];\n";
+            << node_name(node) << " ["
+            << (node->depth() - 1) << ":0];\n";
     }
 
     static void gen_lshift(std::ostream &out, nodeptr d, nodeptr s, nodeptr t)
@@ -33,14 +33,14 @@ namespace flo2v {
         if (s->width() < d->width()) {
             size_t zero_width = d->width() - s->width();
             out << "assign " << node_name(d) << " = {"
-                      << zero_width << "'d0, " << node_name(s)
-                      << "} << " << node_name(t) << ";\n";
+                << zero_width << "'d0, " << node_name(s)
+                << "} << " << node_name(t) << ";\n";
             return;
         }
         if (s->width() > d->width()) {
             out << "assign " << node_name(d) << " = "
-                      << node_name(s) << "[" << (d->width() - 1)
-                      << ":0] << " << node_name(t) << ";\n";
+                << node_name(s) << "[" << (d->width() - 1)
+                << ":0] << " << node_name(t) << ";\n";
             return;
         }
         gen_bin_op(out, "<<", d, s, t);
@@ -63,8 +63,8 @@ namespace flo2v {
         }
 
         out << "assign " << node_name(d) << " = "
-                  << node_name(s) << "["
-                  << (highest - 1) << ":" << start << "];\n";
+            << node_name(s) << "["
+            << (highest - 1) << ":" << start << "];\n";
     }
 
     static void gen_rshift(std::ostream &out, nodeptr d, nodeptr s, nodeptr t)
@@ -80,8 +80,8 @@ namespace flo2v {
         if (s->width() < d->width()) {
             size_t zero_width = d->width() - s->width();
             out << "assign " << node_name(d) << " = {"
-                      << zero_width << "'d0, " << node_name(s)
-                      << "} >> " << node_name(t) << ";\n";
+                << zero_width << "'d0, " << node_name(s)
+                << "} >> " << node_name(t) << ";\n";
             return;
         }
 
@@ -91,13 +91,13 @@ namespace flo2v {
     static void gen_cat(std::ostream &out, nodeptr d, nodeptr s, nodeptr t)
     {
         out << "assign " << node_name(d) << " = {"
-                  << node_name(s) << ", " << node_name(t) << "};\n";
+            << node_name(s) << ", " << node_name(t) << "};\n";
     }
 
     static void gen_decl(std::ostream &out, std::string typ, nodeptr d)
     {
         out << typ << " [" << (d->width() - 1) << ":0] "
-                  << node_name(d) << ";\n";
+            << node_name(d) << ";\n";
     }
 
     static void gen_reg_assign(std::ostream &out, nodeptr reg, nodeptr val)
@@ -109,31 +109,31 @@ namespace flo2v {
             nodeptr d, nodeptr s, nodeptr t, nodeptr u)
     {
         out << "assign " << node_name(d) << " = " << "(" << node_name(s)
-                  << ") ? " << node_name(t) << " : " << node_name(u) << ";\n";
+            << ") ? " << node_name(t) << " : " << node_name(u) << ";\n";
     }
 
     static void gen_write(std::ostream &out,
             nodeptr en, nodeptr mem, nodeptr addr, nodeptr val)
     {
         out << "\tif (" << node_name(en) << ") "
-                  << node_name(mem) << "[" << node_name(addr) << "] <= "
-                  << node_name(val) << ";\n";
+            << node_name(mem) << "[" << node_name(addr) << "] <= "
+            << node_name(val) << ";\n";
     }
 
     static void gen_init(std::ostream &out,
             nodeptr mem, nodeptr addr, nodeptr val)
     {
         out << "\t\t" << node_name(mem) << "["
-                    // don't use node_name for addr, otherwise it will
-                    // try to put the wrong width on it
-                  << addr->name() << "] <= " << node_name(val) << ";\n";
+            // don't use node_name for addr, otherwise it will
+            // try to put the wrong width on it
+            << addr->name() << "] <= " << node_name(val) << ";\n";
     }
 
     static void gen_read(std::ostream &out,
             nodeptr d, nodeptr mem, nodeptr addr)
     {
         out << "assign " << node_name(d) << " = "
-                  << node_name(mem) << "[" << node_name(addr) << "];\n";
+            << node_name(mem) << "[" << node_name(addr) << "];\n";
     }
 
     static void gen_rst(std::ostream &out, nodeptr d, std::string reset_name)
@@ -241,8 +241,8 @@ namespace flo2v {
     void gen_inout(std::ostream &out, std::string inout, nodeptr dest)
     {
             out << ",\n\t" << inout
-                      << " [" << (dest->width() - 1) << ":0] "
-                      << node_name(dest);
+                << " [" << (dest->width() - 1) << ":0] "
+                << node_name(dest);
     }
 
     void gen_flo(std::shared_ptr<flo<node, operation<node> > > flof,
@@ -257,8 +257,8 @@ namespace flo2v {
         auto reset_name = mod_name + "_reset";
 
         out << "module " << mod_name << " (\n"
-                  << "\tinput " << clk_name << ",\n"
-                  << "\tinput " << reset_name;
+            << "\tinput " << clk_name << ",\n"
+            << "\tinput " << reset_name;
 
         // split operations into different categories
         std::vector<opptr> registers;
